@@ -1,0 +1,74 @@
+-------------------------- *** LiveData *** ------------------------------------
+ LiveData is an observable data holder class. LiveData is designed to hold and notify observers (usually UI components) when the underlying data changes.
+ It update observers when the associated lifecycle owner is in the active state (e.g., resumed, started). This ensures that UI components only receive updates
+ when they are visible to the user, preventing unnecessary UI updates when the component is paused or stopped. LiveData ensures that all updates to the observed data are done on the main thread.
+
+ constructor :- LiveData() or LiveData(T value), if not have parameter or have parameter respectively.
+
+ Method:-
+ 1. @MainThread
+    setValue(T value) :- It set the value. In Kotlin, we directly use as livedata.value=___
+
+ 2. public fun observe(
+        owner: @NonNull androidx.lifecycle.LifecycleOwner,
+        observer: @NonNull androidx.lifecycle.Observer<? super T>
+        )
+    This function adds the observer in the lifespan. Here parameter: owner – The LifecycleOwner which controls the observer , usually "this"
+    observer – The observer that will receive the events. This is a lambda function which have a string as parameter which is the updated value.
+
+
+There are two type of data :
+MutableLiveData, LiveData.
+LiveData- The value held by a LiveData instance cannot be modified directly from outside the class. It can only be observed for changes.
+MutableLiveData- MutableLiveData is a subclass of LiveData that allows the value held by the LiveData instance to be modified.
+                 It provides methods such as setValue() and postValue() to set new values.
+                 Since it allows modification of its value, MutableLiveData is often used within a ViewModel to hold and update data.
+                 The ViewModel exposes the MutableLiveData object as a LiveData object to the UI layer,
+                 ensuring that the UI remains unaware of the mutable nature of the data.
+
+
+
+ How to use LiveData:-
+ 1.Create an instance of LiveData to hold a certain type of data. This is usually done within your ViewModel class.
+    eg. -
+    class NameViewModel : ViewModel() {
+
+        // Create a LiveData with a String
+        val currentName: MutableLiveData<String> by lazy {
+            MutableLiveData<String>()
+        }
+
+        // Rest of the ViewModel...
+    }
+
+    lazy:-use to delay the initialization of properties until they are actually needed, which can help improve performance and reduce memory usage.
+
+ 2. Create an Observer object that defines the onChanged() method, which controls what happens when the LiveData object's held data changes.
+    You usually create an Observer object in a UI controller, such as an activity or fragment. In most cases, an app component’s
+    onCreate() method is the right place to begin observing a LiveData object.
+    eg.-
+    class NameActivity : AppCompatActivity() {
+
+        // Use the 'by viewModels()' Kotlin property delegate
+        // from the activity-ktx artifact
+        private val model: NameViewModel by viewModels()
+
+        override fun onCreate(savedInstanceState: Bundle?) {
+            super.onCreate(savedInstanceState)
+
+            // Other code to setup the activity...
+
+            // Create the observer which updates the UI.
+            val nameObserver = Observer<String> { newName ->
+                // Update the UI, in this case, a TextView.
+                nameTextView.text = newName
+            }
+
+            // Observe the LiveData, passing in this activity as the LifecycleOwner and the observer.
+            model.currentName.observe(this, nameObserver)
+        }
+
+    }
+    we can also directly pass observer as lambda function like we did in this project.
+
+ 3. Update LiveData objects - we can update the value of LiveData in ViewModel as we did in this project using setValue(T) method.
